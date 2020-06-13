@@ -59,7 +59,9 @@ class BinaryVisualiser:
         self.binary_system.evolve(self.dt, self.tmax)
 
     def render(self, outfile: str):
-        self.generate_frames(os.path.dirname(outfile))
+        outdir = os.path.dirname(outfile)
+        self.generate_frames(outdir)
+        self.plot_trajectory(outdir)
         self.compile_frames(outfile)
 
     def compile_frames(self, outfile):
@@ -79,6 +81,62 @@ class BinaryVisualiser:
             duration=200,
             loop=0,
         )
+
+    def plot_trajectory(self, outdir):
+        os.makedirs(outdir, exist_ok=True)
+
+        s1 = self.binary_system.star_1
+        s2 = self.binary_system.star_2
+        s1_pos, s2_pos = s1.positions, s2.positions
+
+        fig = plt.figure(1)
+        fig.clear()
+
+        ax = fig.add_subplot(111)
+
+        plt.subplots_adjust(left=0.025, right=0.975, bottom=0.025, top=0.975)
+
+        ax.set_aspect("equal", "datalim")
+        ax.set_axis_off()
+
+        # Center of mass
+        ax.scatter([0], [0], s=150, marker="x", color="k")
+
+        if not (s1.mass == s2.mass and self.binary_system.e == 0.0):
+            ax.plot(s2_pos["x"], s2_pos["y"], color="C1")
+
+        # plot star 1's orbit
+        if not (s1.mass == s2.mass and self.binary_system.e == 0.0):
+            ax.plot(s1_pos["x"], s1_pos["y"], color="C0")
+        else:
+            ax.plot(s1_pos["x"], s1_pos["y"], color="k")
+
+        xmin = 1.05 * min(min(s1_pos["x"]), min(s2_pos["x"]))
+        xmax = 1.05 * max(max(s1_pos["x"]), max(s2_pos["x"]))
+        ymin = 1.05 * min(min(s1_pos["y"]), min(s2_pos["y"]))
+        ymax = 1.05 * max(max(s1_pos["y"]), max(s2_pos["y"]))
+
+        if self.annotate:
+            # plot a reference line
+            ax.plot([0, 1 * AU], [0.93 * ymin, 0.93 * ymin], color="k")
+            ax.text(
+                0.5 * AU,
+                0.975 * ymin,
+                "1 AU",
+                horizontalalignment="center",
+                verticalalignment="top",
+            )
+
+        ax.set_xlim(xmin, xmax)
+        ax.set_ylim(ymin, ymax)
+
+        fig.set_size_inches(12.8, 7.2)
+
+        plt.tight_layout()
+
+        fname = "trajectory.png"
+
+        plt.savefig(os.path.join(outdir, fname))
 
     def generate_frames(self, outdir="temp"):
         os.makedirs(outdir, exist_ok=True)
@@ -106,27 +164,29 @@ class BinaryVisualiser:
             ax.set_aspect("equal", "datalim")
             ax.set_axis_off()
 
+            # Center of mass
             ax.scatter([0], [0], s=150, marker="x", color="k")
 
             # if e = 0 and M_star1 = M_star2, then the orbits lie on top of one
             # another, so plot only a single orbital line.
 
-            # plot star 1's orbit and position
+            # plot star 1's orbit
             symsize = 200
             if not (s1.mass == s2.mass and self.binary_system.e == 0.0):
                 ax.plot(s1_pos["x"], s1_pos["y"], color="C0")
             else:
                 ax.plot(s1_pos["x"], s1_pos["y"], color="k")
-
+            # plot star 1's position
             ax.scatter(
                 [s1_pos["x"][n]], [s1_pos["y"][n]], s=symsize, color="C0", zorder=100
             )
 
-            # plot star 2's orbit and position
+            # plot star 2's orbit
             symsize = 200 * (s1.mass / s2.mass)
             if not (s1.mass == s2.mass and self.binary_system.e == 0.0):
                 ax.plot(s2_pos["x"], s2_pos["y"], color="C1")
 
+            # plot star 2's position
             ax.scatter(
                 [s2_pos["x"][n]], [s2_pos["y"][n]], s=symsize, color="C1", zorder=100
             )

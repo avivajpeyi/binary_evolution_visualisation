@@ -15,13 +15,18 @@ class MyTestCase(unittest.TestCase):
             shutil.rmtree(self.outdir)
 
     def test_image_generation(self):
-        visualiser = BinaryVisualiser()
+        visualiser = BinaryVisualiser(m1=1, m2=2, e=0.4)
         outfilename = os.path.join(self.outdir, "test.gif")
         visualiser.render(outfilename)
         files = glob.glob(os.path.join(self.outdir, "*.png"))
         self.assertTrue(len(files) > 0)
         self.assertTrue(os.path.exists(outfilename))
         shutil.move(outfilename, os.path.basename(outfilename))
+
+    def test_simple_trajectory(self):
+        visualiser = BinaryVisualiser(m1=1, m2=2, e=0.4)
+        visualiser.plot_trajectory(self.outdir)
+        shutil.move(f"{self.outdir}/trajectory.png", "trajectory.png")
 
 
 if __name__ == "__main__":
