@@ -1,12 +1,22 @@
 import numpy as np
-from .vector import Vector
+
 from .constants import G
+from .vector import Vector
 
 
 class BinaryRk4Solver:
     """Potnentially do this with multithreading"""
 
-    def __init__(self, init_r1, init_v1, init_r2, init_v2, m1, m2, dt):
+    def __init__(
+        self,
+        init_r1: Vector,
+        init_v1: Vector,
+        init_r2: Vector,
+        init_v2: Vector,
+        m1: float,
+        m2: float,
+        dt: float,
+    ):
         self.k1 = np.zeros(8, np.float64)
         self.k2 = np.zeros(8, np.float64)
         self.k3 = np.zeros(8, np.float64)
